@@ -1,0 +1,276 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
+using RMS.DAL;
+using RMS.Model;
+
+namespace RMS.BLL
+{
+    //--Ata-->
+    public class CompanyInfoBiz
+    {
+        private IDataAccess objDataAccess;
+        private DbCommand objDbCommand;
+
+        private void BuildModelForCompanyInfo(DbDataReader objDataReader, CompanyInfo objCompanyInfo)
+        {
+            DataTable objDataTable = objDataReader.GetSchemaTable();
+            foreach (DataRow dr in objDataTable.Rows)
+            {
+                String column = dr.ItemArray[0].ToString();
+                switch (column)
+                {
+                    case "CompanyId":
+                        if (!Convert.IsDBNull(objDataReader["CompanyId"]))
+                        {
+                            objCompanyInfo.CompanyId= Convert.ToByte(objDataReader["CompanyId"]);
+                        }
+                        break;
+                    case "CompanyName":
+                        if (!Convert.IsDBNull(objDataReader["CompanyName"]))
+                        {
+                            objCompanyInfo.CompanyName = objDataReader["CompanyName"].ToString();
+                        }
+                        break;
+                    //case "CompanyLogo":
+                    //    if (!Convert.IsDBNull(objDataReader["CompanyLogo"]))
+                    //    {
+                    //        objCompanyInfo.CompanyLogo = Convert.FromBase64String(objDataReader["CompanyLogo"].ToString());
+                    //    }
+                    //    break;
+
+                    case "CompanyAddress":
+                        if (!Convert.IsDBNull(objDataReader["CompanyAddress"]))
+                        {
+                            objCompanyInfo.CompanyAddress= objDataReader["CompanyAddress"].ToString();
+                        }
+                        break;
+                    case "CompanyPhone":
+                        if (!Convert.IsDBNull(objDataReader["CompanyPhone"]))
+                        {
+                            objCompanyInfo.CompanyPhone= objDataReader["CompanyPhone"].ToString();
+                        }
+                        break;
+                    case "CompanyFax":
+                        if (!Convert.IsDBNull(objDataReader["CompanyFax"]))
+                        {
+                            objCompanyInfo.CompanyFax = objDataReader["CompanyFax"].ToString();
+                        }
+                        break;
+                    case "CompanyEmail":
+                        if (!Convert.IsDBNull(objDataReader["CompanyEmail"]))
+                        {
+                            objCompanyInfo.CompanyEmail= objDataReader["CompanyEmail"].ToString();
+                        }
+                        break;
+                    case "TradeLicense":
+                        if (!Convert.IsDBNull(objDataReader["TradeLicense"]))
+                        {
+                            objCompanyInfo.TradeLicense= objDataReader["TradeLicense"].ToString();
+                        }
+                        break;
+                    case "TINCertificate":
+                        if (!Convert.IsDBNull(objDataReader["TINCertificate"]))
+                        {
+                            objCompanyInfo.TINCertificate= objDataReader["TINCertificate"].ToString();
+                        }
+                        break;
+                    case "BSTIApproval":
+                        if (!Convert.IsDBNull(objDataReader["BSTIApproval"]))
+                        {
+                            objCompanyInfo.BSTIApproval = objDataReader["BSTIApproval"].ToString();
+                        }
+                        break;
+                    case "VATRegNumber":
+                        if (!Convert.IsDBNull(objDataReader["VATRegNumber"]))
+                        {
+                            objCompanyInfo.VATRegNumber = objDataReader["VATRegNumber"].ToString();
+                        }
+                        break;
+                    case "IsActive":
+                        if (!Convert.IsDBNull(objDataReader["IsActive"]))
+                        {
+                            objCompanyInfo.IsActive = Convert.ToBoolean(objDataReader["IsActive"].ToString());
+                        }
+                        break;
+                    case "CreatedBy":
+                        if (!Convert.IsDBNull(objDataReader["CreatedBy"]))
+                        {
+                            objCompanyInfo.CreatedBy = Convert.ToInt16(objDataReader["CreatedBy"]);
+                        }
+                        break;
+                    case "CreatedDate":
+                        if (!Convert.IsDBNull(objDataReader["CreatedDate"]))
+                        {
+                            objCompanyInfo.CreatedDate = Convert.ToDateTime(objDataReader["CreatedDate"].ToString());
+                        }
+                        break;
+                    case "UpdatedBy":
+                        if (!Convert.IsDBNull(objDataReader["UpdatedBy"]))
+                        {
+                            objCompanyInfo.UpdatedBy = Convert.ToInt16(objDataReader["UpdatedBy"].ToString());
+                        }
+                        break;
+                    case "UpdatedDate":
+                        if (!Convert.IsDBNull(objDataReader["UpdatedDate"]))
+                        {
+                            objCompanyInfo.UpdatedDate = Convert.ToDateTime(objDataReader["UpdatedDate"].ToString());
+                        }
+                        break;
+                    case "SortedBy":
+                        if (!Convert.IsDBNull(objDataReader["SortedBy"]))
+                        {
+                            objCompanyInfo.SortedBy = Convert.ToByte(objDataReader["SortedBy"].ToString());
+                        }
+                        break;
+                    case "Remarks":
+                        if (!Convert.IsDBNull(objDataReader["Remarks"]))
+                        {
+                            objCompanyInfo.Remarks = objDataReader["Remarks"].ToString();
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        // Company details for Generating report (rokon)
+        public DataTable CompanyDetails()
+        {
+            objDataAccess = DataAccess.NewDataAccess();
+            objDbCommand = objDataAccess.GetCommand(true, IsolationLevel.ReadCommitted);
+            DbDataReader objDbDataReader = null;
+            DataTable dt = new DataTable();
+
+            try
+            {
+                dt = objDataAccess.ExecuteTable(objDbCommand, "[cr].[uspCRCompanyInformation]", CommandType.StoredProcedure);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error : " + ex.Message);
+            }
+            finally
+            {
+                objDataAccess.Dispose(objDbCommand);
+            }
+
+            return dt;
+        }
+
+        public List<CompanyInfo> GetCompanyNameList()
+        {
+            objDataAccess = DataAccess.NewDataAccess();
+            objDbCommand = objDataAccess.GetCommand(true, IsolationLevel.ReadCommitted);
+            DbDataReader objDbDataReader = null;
+            List<CompanyInfo> objCompanyNameList=new List<CompanyInfo>();
+            CompanyInfo objCompanyInfo;
+
+            try
+            {
+                objDbDataReader = objDataAccess.ExecuteReader(objDbCommand, "[rdb].[uspGetCompanyNameForDDL]", CommandType.StoredProcedure);
+
+                if (objDbDataReader.HasRows)
+                {
+                    while (objDbDataReader.Read())
+                    {
+                        objCompanyInfo = new CompanyInfo();
+                        this.BuildModelForCompanyInfo(objDbDataReader, objCompanyInfo);
+                        objCompanyNameList.Add(objCompanyInfo);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error : " + ex.Message);
+            }
+            finally
+            {
+                if (objDbDataReader != null)
+                {
+                    objDbDataReader.Close();
+                }
+                objDataAccess.Dispose(objDbCommand);
+            }
+
+            return objCompanyNameList;
+        }
+
+        public CompanyInfo GetCompanyInfoForUpdateCompanyInfo(byte companyId)
+        {
+            objDataAccess = DataAccess.NewDataAccess();
+            objDbCommand = objDataAccess.GetCommand(true, IsolationLevel.ReadCommitted);
+            DbDataReader objDbDataReader = null;
+            CompanyInfo objCompanyInfo = null;
+
+            try
+            {
+                objDbCommand.AddInParameter("CompanyId", companyId);
+                objDbDataReader = objDataAccess.ExecuteReader(objDbCommand, "[rdb].[uspGetCompanyInfoForUpdateCompany]", CommandType.StoredProcedure);
+                while (objDbDataReader.Read())
+                {
+                     objCompanyInfo = new CompanyInfo();
+                    this.BuildModelForCompanyInfo(objDbDataReader, objCompanyInfo);
+                    
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error : " + ex.Message);
+            }
+            finally
+            {
+                objDataAccess.Dispose(objDbCommand);
+            }
+
+            return objCompanyInfo;
+        }
+
+        public void UpdateCompanyInfo(CompanyInfo objCompanyInfo)
+        {
+            int noOfAffacted = 0;
+
+            objDataAccess = DataAccess.NewDataAccess();
+            objDbCommand = objDataAccess.GetCommand(true, IsolationLevel.Serializable);
+
+            objDbCommand.AddInParameter("CompanyId", objCompanyInfo.CompanyId);
+            objDbCommand.AddInParameter("CompanyName", objCompanyInfo.CompanyName);
+            objDbCommand.AddInParameter("CompanyAddress", objCompanyInfo.CompanyAddress);
+            objDbCommand.AddInParameter("CompanyPhone", objCompanyInfo.CompanyPhone);
+            objDbCommand.AddInParameter("CompanyFax", objCompanyInfo.CompanyFax);
+            objDbCommand.AddInParameter("CompanyEmail", objCompanyInfo.CompanyEmail);
+            objDbCommand.AddInParameter("TradeLicense", objCompanyInfo.TradeLicense);
+            objDbCommand.AddInParameter("TINCertificate", objCompanyInfo.TINCertificate);
+            objDbCommand.AddInParameter("BSTIApproval", objCompanyInfo.BSTIApproval);
+            objDbCommand.AddInParameter("VATRegNumber", objCompanyInfo.VATRegNumber);
+          //  objDbCommand.AddInParameter("IsActive", objCompanyInfo.IsActive);
+            objDbCommand.AddInParameter("UpdatedByUserId", objCompanyInfo.UpdatedBy);
+
+            try
+            {
+                noOfAffacted = objDataAccess.ExecuteNonQuery(objDbCommand, "[rdb].[uspUpdateCompanyInfo]", CommandType.StoredProcedure);
+                if (noOfAffacted > 0)
+                {
+                    objDbCommand.Transaction.Commit();
+
+                }
+                else
+                {
+                    objDbCommand.Transaction.Rollback();
+
+                }
+            }
+            catch (Exception ex)
+            {
+                objDbCommand.Transaction.Rollback();
+                throw new Exception("Database Error Occured", ex);
+            }
+            finally
+            {
+                objDataAccess.Dispose(objDbCommand);
+            }
+        }
+    }
+}

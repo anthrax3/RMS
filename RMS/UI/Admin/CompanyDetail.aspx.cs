@@ -1,0 +1,111 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Web.Services.Description;
+using System.Web.UI.WebControls;
+using RMS.BLL;
+using RMS.DAL;
+using RMS.Model;
+using System.Data;
+
+namespace RMS.UI.Admin
+{
+    public partial class CompanyDetail : BasePage
+    {
+        private CompanyInfo objCompanyInfo;
+        private CompanyInfoBiz objCompanyInfoBiz;
+        private List<CompanyInfo> objCompanyNameList;
+
+        protected void Page_Load(object sender, EventArgs e)
+        {
+            if (!IsPostBack)
+            {
+                PopulateDropdownForCompanyName();
+                
+            }
+        }
+
+        private void PopulateDropdownForCompanyName()
+        {
+            objCompanyNameList = new List<CompanyInfo>();
+            objCompanyInfoBiz = new CompanyInfoBiz();
+
+            objCompanyNameList = objCompanyInfoBiz.GetCompanyNameList();
+            ddlCompanyName.DataSource = objCompanyNameList;
+            ddlCompanyName.DataValueField = "CompanyId";
+            ddlCompanyName.DataTextField = "CompanyName";
+            ddlCompanyName.DataBind();
+            ddlCompanyName.Items.Insert(0, new ListItem("--Select Company --", "0"));
+        }
+
+        protected void btnCompanyInfoUpdate_onClick(object sender, EventArgs e)
+        {
+            if (EditCompanyInfo())
+            {
+               MessageBox("Update Successful");
+            }
+            ClearInputs(Page.Controls);
+            
+        }
+
+        protected void ddlCompanyName_OnSelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (ddlCompanyName.SelectedIndex == 0)
+            {
+                pnlUpdateCompany.Visible = false;
+                pnlUpdateCompany.Controls.Clear();
+            }
+            else
+            {
+                pnlUpdateCompany.Visible = true;
+                objCompanyInfo = new CompanyInfo();
+                objCompanyInfoBiz = new CompanyInfoBiz();
+
+                byte companyId = Convert.ToByte(ddlCompanyName.SelectedValue);
+                objCompanyInfo = objCompanyInfoBiz.GetCompanyInfoForUpdateCompanyInfo(companyId);
+
+                txtUpdateCompanyName.Text = objCompanyInfo.CompanyName;
+                txtUpdateCompanyAddress.Text = objCompanyInfo.CompanyAddress;
+                txtUpdateCompanyPhoneNo.Text = objCompanyInfo.CompanyPhone;
+                txtUpdateCompanyFax.Text = objCompanyInfo.CompanyFax;
+                txtUpdateCompanyEmail.Text = objCompanyInfo.CompanyEmail;
+                txtUpdateTradeLicense.Text = objCompanyInfo.TradeLicense;
+                txtUpdateTINCertificate.Text = objCompanyInfo.TINCertificate;
+                txtUpdateBSTIApproval.Text = objCompanyInfo.BSTIApproval;
+                txtUpdateVATRegNumber.Text = objCompanyInfo.VATRegNumber;
+            }
+            
+
+        }
+
+        private bool EditCompanyInfo()
+        {
+            objCompanyInfo = new CompanyInfo();
+            objCompanyInfoBiz = new CompanyInfoBiz();
+
+            //byte companyId = Convert.ToByte(ddlCompanyName.SelectedValue);
+
+            objCompanyInfo.CompanyId = Convert.ToByte(ddlCompanyName.SelectedValue);
+            objCompanyInfo.CompanyName = txtUpdateCompanyName.Text.Trim();
+            objCompanyInfo.CompanyAddress = txtUpdateCompanyAddress.Text;
+            objCompanyInfo.CompanyPhone = txtUpdateCompanyPhoneNo.Text;
+            objCompanyInfo.CompanyFax = txtUpdateCompanyFax.Text;
+            objCompanyInfo.CompanyEmail = txtUpdateCompanyEmail.Text;
+            objCompanyInfo.TradeLicense = txtUpdateTradeLicense.Text;
+            objCompanyInfo.TINCertificate = txtUpdateTINCertificate.Text;
+            objCompanyInfo.BSTIApproval = txtUpdateBSTIApproval.Text;
+            objCompanyInfo.VATRegNumber = txtUpdateVATRegNumber.Text;
+            objCompanyInfo.UpdatedBy = Convert.ToInt16(Session["UserId"]);
+
+            objCompanyInfoBiz.UpdateCompanyInfo(objCompanyInfo);
+
+            return true;
+        }
+
+        protected void btnCancel_OnClick(object sender, EventArgs e)
+        {
+            
+            pnlUpdateCompany.Visible = false;
+            ddlCompanyName.SelectedIndex = 0;
+        }
+    }
+}
